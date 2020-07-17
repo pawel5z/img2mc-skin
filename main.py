@@ -1,4 +1,5 @@
 from PIL import Image
+import argparse
 
 # coords of parts of mc skin
 # front
@@ -29,10 +30,25 @@ backCoords = [BACK_HEAD, BACK_LA, BACK_BODY, BACK_RA, BACK_LL, BACK_RL]
 imgCoords = [IMG_HEAD, IMG_RA, IMG_BODY, IMG_LA, IMG_RL, IMG_LL]
 
 def img2Skin(skin: Image, imgFront: Image, imgBack: Image) -> Image:
+    imgFront = imgFront.resize((24, 32))
     for fCoord, iCoord in zip(frontCoords, imgCoords):
         imgRegion = imgFront.crop(iCoord)
         skin.paste(imgRegion, fCoord)
 
+    imgBack = imgBack.resize((24, 32))
     for bCoord, iCoord in zip(backCoords, imgCoords):
         imgRegion = imgBack.crop(iCoord)
         skin.paste(imgRegion, bCoord)
+    
+    return skin
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("skinTemplate", help="skin texture into which given images will be pasted")
+parser.add_argument("imgFront", help="image that will be on front of the skin")
+parser.add_argument("imgBack", help="image that will be on back of the skin")
+parser.add_argument("outputFile", help="file name the skin will be saved to")
+args = parser.parse_args()
+
+res = img2Skin(Image.open(args.skinTemplate), Image.open(args.imgFront), Image.open(args.imgBack))
+res.save(args.outputFile)
