@@ -1,5 +1,7 @@
 from PIL import Image
 import argparse
+import sys
+import io
 
 
 # coords of parts of mc skin
@@ -50,8 +52,13 @@ if __name__ == "__main__":
     parser.add_argument("skinTemplate", help="skin texture into which given images will be pasted")
     parser.add_argument("imgFront", help="image that will be on front of the skin")
     parser.add_argument("imgBack", help="image that will be on back of the skin")
-    parser.add_argument("outputFile", help="file name the skin will be saved to")
+    parser.add_argument("-o", "--out", help="file name the skin will be saved to", required=False)
     args = parser.parse_args()
 
-    res = img2Skin(Image.open(args.skinTemplate), Image.open(args.imgFront), Image.open(args.imgBack))
-    res.save(args.outputFile)
+    res: Image = img2Skin(Image.open(args.skinTemplate), Image.open(args.imgFront), Image.open(args.imgBack))
+    if args.out is None:
+        bin_res = io.BytesIO()
+        res.save(bin_res, format='png')
+        sys.stdout.buffer.write(bin_res.getvalue())
+    else:
+        res.save(args.out)
