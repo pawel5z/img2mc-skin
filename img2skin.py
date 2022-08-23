@@ -43,7 +43,7 @@ def img2Skin(skin: Image, imgFront: Image, imgBack: Image) -> Image:
     for bCoord, iCoord in zip(backCoords, imgCoords):
         imgRegion = imgBack.crop(iCoord)
         skin.paste(imgRegion, bCoord)
-    
+
     return skin
 
 
