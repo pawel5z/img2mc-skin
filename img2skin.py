@@ -4,6 +4,7 @@ import argparse
 import io
 import sys
 from copy import deepcopy
+import numpy as np
 from PIL import Image
 
 import utils
@@ -40,20 +41,49 @@ img_coords = [IMG_HEAD, IMG_RIGHT_ARM, IMG_BODY,
               IMG_LEFT_ARM, IMG_RIGHT_LEG, IMG_LEFT_LEG]
 
 
-def img2skin(img_front: Image, img_back: Image, template: Image = None) -> Image:
+def col_str_to_ndarray(col: str) -> np.ndarray:
+    """_summary_
+
+    Args:
+        col (str): String in format rrggbbaa, describing color.
+
+    Raises:
+        ValueError: If `col` in incorrect format.
+
+    Returns:
+        np.ndarray: 4-element ndarray representing `col` string.
+    """
+    col = col.lower()
+    if len(col) != 8:
+        raise ValueError(f"Invalid color string: \"{col}\"")
+    channels = [col[i:i+2] for i in range(0, len(col), 2)]
+    channels = [int(channel, 16) for channel in channels]
+    return np.array(channels, dtype=np.uint8)
+
+
+def img2skin(img_front: Image, img_back: Image, template: Image = None,
+             fill_color: str = None) -> Image:
     """Paste `img_front` and `img_back` onto `skin`.
 
     Args:
         skin (Image): _description_
         img_front (Image): _description_
         img_back (Image): _description_
+        fill_color (str): _description_
 
     Returns:
         Image: _description_
     """
     skin = deepcopy(template)
     if skin is None:
-        skin = Image.fromarray(utils.template)
+        skin = np.array(utils.template)
+        if fill_color is not None:
+            fill_color_arr = col_str_to_ndarray(fill_color)
+            for d1 in skin:
+                for d2 in d1:
+                    if np.any(d2):
+                        d2[...] = fill_color_arr
+        skin = Image.fromarray(skin)
 
     img_front = img_front.resize((24, 32))
     for f_coord, i_coord in zip(front_coords, img_coords):
@@ -75,14 +105,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "back", help="Image that will be on back of the skin.")
     parser.add_argument(
+        "-o", "--out", help="File name the skin will be saved to.", required=False)
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "-t", "--template", help="Optional skin template. If absent, a default one will be used.",
         required=False)
-    parser.add_argument(
-        "-o", "--out", help="File name the skin will be saved to.", required=False)
+    group.add_argument(
+        "-c", "--color",
+        help="Set filling color of skin's sides. Provided in hex format: rrggbbaa.")
+
     args = parser.parse_args()
 
     res: Image = img2skin(Image.open(args.front), Image.open(args.back),
-                          None if args.template is None else Image.open(args.template))
+                          None if args.template is None else Image.open(args.template), args.color)
     if args.out is None:
         bin_res = io.BytesIO()
         res.save(bin_res, format="png")
