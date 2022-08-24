@@ -101,9 +101,9 @@ def img2skin(img_front: Image, img_back: Image, template: Image = None,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "front", help="Image that will be on front of the skin.")
+        "front", help="Image that will be in front of the skin.")
     parser.add_argument(
-        "back", help="Image that will be on back of the skin.")
+        "back", help="Image that will in the back of the skin.")
     parser.add_argument(
         "-o", "--out", help="File name the skin will be saved to.", required=False)
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         required=False)
     group.add_argument(
         "-c", "--color",
-        help="Set filling color of skin's sides. Provided in hex format: rrggbbaa.")
+        help="Set the fill color of skin's sides. Provided in hex format: rrggbbaa.")
 
     args = parser.parse_args()
 
